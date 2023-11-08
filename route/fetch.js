@@ -16,29 +16,29 @@ router.get('/', async (req, res) => {
     // Check if the data is already in Redis
     const count = await redis.llen(redisKey);
     if (count == 0) {
-        // Data is not in Redis, fetch it from the database
-        const userData = await fetchUserDataFromDatabase();
+      // Data is not in Redis, fetch it from the database
+      const userData = await fetchUserDataFromDatabase();
 
-        // Store the data in the Redis list
-        const redisMulti = redis.multi();
-        userData.forEach((user) => {
-          redisMulti.rpush(redisKey, JSON.stringify(user));
-        });
-  
-        redisMulti.exec((err, replies) => {
-          if (err) {
-            res.status(500).json({ error: 'Error fetching and caching users' });
-          } else {
-            res.json(userData);
-          }
-        });
-     
+      // Store the data in the Redis list
+      const redisMulti = redis.multi();
+      userData.forEach((user) => {
+        redisMulti.rpush(redisKey, JSON.stringify(user));
+      });
+      await redis.expire(redisKey,10);
+      redisMulti.exec((err, replies) => {
+        if (err) {
+          res.status(500).json({ error: 'Error fetching and caching users' });
+        } else {
+          res.json(userData);
+        }
+      });
+
     } else if (count > 0) {
       const cachedUsers = await redis.lrange(redisKey, start, end);
       const users = cachedUsers.map((userData) => JSON.parse(userData));
       res.json(users);
     } else {
-      const users= {};
+      const users = {};
       res.json(users);
     }
   } catch (error) {

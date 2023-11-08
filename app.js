@@ -9,7 +9,7 @@ app.use(express.static('public'));
 
 app.use('/api', require('./Controller/FetchController'));
 
-app.get('/', require('./route/home'));
+app.get('/', require('./route/fetch'));
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
